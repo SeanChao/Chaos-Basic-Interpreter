@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+#include "editor/Editor.h"
 #include "Console.h"
 
 class MainWindow : public QMainWindow {

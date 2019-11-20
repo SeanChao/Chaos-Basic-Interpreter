@@ -27,11 +27,15 @@ CONFIG += c++11
 SOURCES += \
         main.cc         \
         Mainwindow.cc   \
-        Console.cc
+        Console.cc      \
+        editor/Editor.cc\
+        editor/ListBuffer.cc    \
 
 HEADERS += \
         Mainwindow.h    \
         Console.h       \
+        editor/Editor.h \
+        editor/ListBuffer.h    \
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

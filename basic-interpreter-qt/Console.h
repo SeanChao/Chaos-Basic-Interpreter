@@ -16,6 +16,7 @@ class Console : public QTextEdit {
    public slots:
     void clear();
     void write(QString msg);
+    void getOutput(QString msg);
 
    protected:
     virtual void keyPressEvent(QKeyEvent *event) override;

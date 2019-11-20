@@ -1,4 +1,6 @@
 #include "Editor.h"
+#include <QDebug>
+#include <QString>
 #include <iostream>
 #include <sstream>
 
@@ -11,24 +13,24 @@ Editor::Editor() { buffer = new ListBuffer(); }
 
 Editor::~Editor() { delete buffer; }
 
-void Editor::run() {
-    // TODO: turn cout in outputstream...
-    string cmd;
-    while (true) {
-        qDebug() << "cmd> ";
-        // qDebug().flush();
-        getline(cin, cmd);
-        if (cmd == "Q") break;
-        try {
-            dispatchCmd(cmd);
-        } catch (const char *e) {
-            qDebug() << "? " << e << endl;
-        } catch (const out_of_range &oor) {
-            qDebug() << "? " << oor.what() << endl;
-        } catch (const range_error &re) {
-            qDebug() << "? " << re.what() << endl;
-        }
+void Editor::run(QString cmd) {
+    // emit editorOutput("cmd> ");
+    // qDebug().flush();
+    if (cmd == "Q") return;
+    try {
+        dispatchCmd(cmd.toUtf8().constData());
+    } catch (const QString &e) {
+        // qDebug() << "? " << e << endl;
+        // QString info = ;
+        editorOutput(e);
+    } catch (const out_of_range &oor) {
+        qDebug() << "? " << oor.what() << endl;
+        editorOutput("? ");
+    } catch (const range_error &re) {
+        qDebug() << "? " << re.what() << endl;
+        editorOutput("? ");
     }
+    emit editorOutput(QString("cmd >").replace("[[\r]\n]", ""));
 }
 
 void Editor::dispatchCmd(const string &cmd) {
@@ -45,24 +47,27 @@ void Editor::dispatchCmd(const string &cmd) {
     const string strList = "list";
     if (stringCompareI(strList, cmd)) {
         Editor::cmdList();
+        // emit editorOutput("cmd >");
         return;
     }
 
     if (cmd[0] == 'd' && cmd[1] == ' ') {
-        if (ss.eof()) throw "Bad/Unknown command\n";
+        if (ss.eof()) throw QString("Bad/Unknown command");
         ss >> type >> line;
         cmdDelete(line);
+        // emit editorOutput("cmd >");
         return;
     }
 
     type = cmd.substr(0, 5);
     if (type == "save ") {
-        if (cmd.length() == 5) throw "No filename specified\n";
+        if (cmd.length() == 5) throw QString("No filename specified");
         string filename = "";
         for (int i = 5; i < cmd.length(); i++) {
             filename.append(1, cmd[i]);
         }
         cmdSave(filename);
+        // emit editorOutput("cmd >");
         return;
     }
 
@@ -70,15 +75,16 @@ void Editor::dispatchCmd(const string &cmd) {
     if (!ss.eof() && line > 0) {
         string statement = "";
         int lineStrLength = numberLength(line);
-        if (cmd[lineStrLength] != ' ') throw "Bad/Unknown command\n";
+        if (cmd[lineStrLength] != ' ') throw QString("Bad/Unknown command");
         for (int i = lineStrLength + 1; i < cmd.length(); i++) {
             statement += cmd[i];
         }
         cmdInput(line, statement);
+        // emit editorOutput("cmd >");
         return;
     }
 
-    throw "Bad/Unknown command\n";
+    throw QString("Bad/Unknown command");
 }
 
 void Editor::cmdDelete(const int line) { buffer->deleteLine(line); }
@@ -87,16 +93,29 @@ void Editor::cmdInput(int line, const string &statement) {
     buffer->insertLine(line, statement);
 }
 
-void Editor::cmdList() const { buffer->showLines(); }
+void Editor::cmdList() const {
+    buffer->showLines();
+    int linesCount = buffer->getLength();
+    for (int i = 0; i < linesCount; i++) {
+        QString lineNumber = QString::number(buffer->getlineNumber(i));
+        QString bufferedLine =
+            lineNumber + QString::fromStdString("\t" + buffer->getline(i));
+        emit editorOutput(bufferedLine);
+    }
+}
 
 void Editor::cmdSave(const string &filename) const {
     buffer->writeToFile(filename);
 }
 
-// TODO: add other code you want
 int Editor::numberLength(int number) {
     if (number == 0) return 0;
     return 1 + numberLength(number / 10);
+}
+
+void Editor::getUserInput(QString str) {
+    qDebug() << "GET IN ED: " << str;
+    run(str);
 }
 
 bool charCompareI(char a, char b) { return (toupper(a) == toupper(b)); }

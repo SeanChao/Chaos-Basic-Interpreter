@@ -9,10 +9,10 @@ class Editor : public QObject {
    public:
     Editor();
     ~Editor();
-    void run();
+    void run(QString cmd);
 
    signals:
-    void editorOutput(QString str);
+    void editorOutput(QString str) const;
 
    public slots:
     void getUserInput(QString str);

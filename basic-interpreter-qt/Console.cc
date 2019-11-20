@@ -1,8 +1,8 @@
 #include "Console.h"
+#include <QDebug>
 #include <QKeyEvent>
 #include <QTextCursor>
 #include <QTextLine>
-#include <QDebug>
 
 Console::Console(QWidget *parent) : QTextEdit(parent) {}
 
@@ -10,7 +10,7 @@ void Console::clear() { this->clear(); }
 
 void Console::write(QString msg) {
     this->append(msg);
-    qDebug() << "console <- " << msg << '\n';
+    // qDebug() << "console <- " << msg << '\n';
 }
 
 void Console::keyPressEvent(QKeyEvent *event) {
@@ -25,4 +25,13 @@ void Console::keyPressEvent(QKeyEvent *event) {
         newLineWritten(lastLine);
     }
     QTextEdit::keyPressEvent(event);
+}
+
+/**
+ * SLOT: get the output stream from the editor to print
+ * @param QString out: the output string
+ */
+void Console::getOutput(QString out) {
+    qDebug() << "GET FR ED: " << out;
+    write(out);
 }
