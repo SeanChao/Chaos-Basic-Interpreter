@@ -3,7 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "/home/sean/Qt/5.12.6/gcc_64",
+                "/home/sean/Qt/5.12.6/gcc_64/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
