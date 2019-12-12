@@ -7,13 +7,9 @@
 #ifndef _expression_h
 #define _expression_h
 
-#include <string>
 #include <map>
-// #include "tokenscanner.h"
-
-/* Forward reference */
-
-// class EvaluationContext;
+#include <string>
+#include "eval_context.h"
 
 /*
  * Type: ExpressionType
@@ -38,7 +34,7 @@ class Expression {
     Expression();
     // Expression(std::string &expr);
     virtual ~Expression();
-    // virtual int eval(EvaluationContext &context) = 0;
+    virtual int eval(EvalContext &context) = 0;
     virtual std::string toString() = 0;
     virtual ExpressionType type() = 0;
 
@@ -61,7 +57,7 @@ class ConstantExp : public Expression {
    public:
     ConstantExp(int val);
 
-    // virtual int eval(EvaluationContext &context);
+    virtual int eval(EvalContext &context);
     virtual std::string toString();
     virtual ExpressionType type();
 
@@ -79,9 +75,9 @@ class ConstantExp : public Expression {
 
 class IdentifierExp : public Expression {
    public:
-    IdentifierExp(std::string name);
+    IdentifierExp(std::string &name);
 
-    // virtual int eval(EvaluationContext &context);
+    virtual int eval(EvalContext &context);
     virtual std::string toString();
     virtual ExpressionType type();
 
@@ -102,7 +98,7 @@ class CompoundExp : public Expression {
     CompoundExp(std::string op, Expression *lhs, Expression *rhs);
     virtual ~CompoundExp();
 
-    // virtual int eval(EvaluationContext &context);
+    virtual int eval(EvalContext &context);
     virtual std::string toString();
     virtual ExpressionType type();
 
@@ -118,20 +114,10 @@ class CompoundExp : public Expression {
 };
 
 /*
- * Class: EvaluationContext
+ * Class: EvalContext
  * ------------------------
  * This class encapsulates the information that the evaluator needs to
  * know in order to evaluate an expression.
  */
-
-// class EvaluationContext {
-//    public:
-//     void setValue(std::string var, int value);
-//     int getValue(std::string var);
-//     bool isDefined(std::string var);
-
-//    private:
-//     std::map<std::string, int> symbolTable;
-// };
 
 #endif

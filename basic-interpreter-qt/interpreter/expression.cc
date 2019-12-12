@@ -1,8 +1,8 @@
 #include "expression.h"
 #include <string>
+#include "eval_context.h"
 
 Expression::Expression() {}
-// Expression::Expression(std::string& expr) {}
 
 Expression::~Expression() {}
 
@@ -18,7 +18,7 @@ Expression* Expression::getRHS() {}
  */
 ConstantExp::ConstantExp(int val) : value(val) {}
 
-// int ConstantExp::eval(EvaluationContext& context) { return value; }
+int ConstantExp::eval(EvalContext& context) { return value; }
 
 std::string ConstantExp::toString() { return std::to_string(value); }
 
@@ -30,12 +30,12 @@ int ConstantExp::getConstantValue() { return value; }
  * IdentifierExp
  * ##############
  */
-IdentifierExp::IdentifierExp(std::string name) : name(name) {}
+IdentifierExp::IdentifierExp(std::string& name) : name(name) {}
 
-// int IdentifierExp::eval(EvaluationContext& context) {
-//     // if (!context.isDefined(name)) error(name + " is undefined");
-//     return context.getValue(name);
-// }
+int IdentifierExp::eval(EvalContext& context) {
+    if (!context.isDefined(name)) throw(name + " is undefined");
+    return context.getVar(name);
+}
 
 std::string IdentifierExp::toString() { return name; }
 
@@ -50,24 +50,26 @@ std::string IdentifierExp::getIdentifierName() { return name; }
 CompoundExp::CompoundExp(std::string op, Expression* lhs, Expression* rhs)
     : op(op), lhs(lhs), rhs(rhs) {}
 
-CompoundExp::~CompoundExp(){}
-// int CompoundExp::eval(EvaluationContext& context) {
-//     int right = rhs->eval(context);
-//     if (op == "=") {
-//         context.setValue(lhs->getIdentifierName(), right);
-//         return right;
-//     }
-//     int left = lhs->eval(context);
-//     if (op == "+") return left + right;
-//     if (op == "-") return left - right;
-//     if (op == "*") return left * right;
-//     if (op == "/") {
-//         // if (right == 0) error("Division by 0");
-//         return left / right;
-//     }
-//     // error("Illegal operator in expression");
-//     return 0;
-// }
+CompoundExp::~CompoundExp() {}
+
+int CompoundExp::eval(EvalContext& context) {
+    int right = rhs->eval(context);
+    if (op == "=") {
+        std::string identifierName = lhs->getIdentifierName();
+        context.setVar(identifierName, right);
+        return right;
+    }
+    int left = lhs->eval(context);
+    if (op == "+") return left + right;
+    if (op == "-") return left - right;
+    if (op == "*") return left * right;
+    if (op == "/") {
+        if (right == 0) throw("Division by 0");
+        return left / right;
+    }
+    throw("Illegal operator in expression");
+    return 0;
+}
 
 std::string CompoundExp::toString() { return op; }
 

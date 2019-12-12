@@ -2,12 +2,14 @@
 
 #include <QObject>
 #include <string>
+#include "../interpreter/program.h"
 #include "ListBuffer.h"
 
 class Editor : public QObject {
     Q_OBJECT
    public:
     Editor();
+    Editor(Program *);
     ~Editor();
     void run(QString cmd);
 
@@ -16,8 +18,11 @@ class Editor : public QObject {
 
    public slots:
     void getUserInput(QString str);
+    void getProgramOutput(QString str);
 
    private:
+    Program *program;
+
     ListBuffer *buffer;
 
     void dispatchCmd(const string &cmd);

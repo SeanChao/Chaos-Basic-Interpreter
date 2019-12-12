@@ -30,12 +30,26 @@ SOURCES += \
         Console.cc      \
         editor/Editor.cc\
         editor/ListBuffer.cc    \
+        interpreter/common.cc   \
+        interpreter/eval_context.cc \
+        interpreter/expression.cc   \
+        interpreter/parser.cc   \
+        interpreter/statement.cc\
+        interpreter/tokenizer.cc\
+        interpreter/program.cc  \
 
 HEADERS += \
         Mainwindow.h    \
         Console.h       \
         editor/Editor.h \
-        editor/ListBuffer.h    \
+        editor/ListBuffer.h     \
+        interpreter/common.h    \
+        interpreter/eval_context.h  \
+        interpreter/expression.h    \
+        interpreter/parser.h   \
+        interpreter/statement.h\
+        interpreter/tokenizer.h\
+        interpreter/program.h  \
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

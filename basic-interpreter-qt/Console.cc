@@ -4,7 +4,7 @@
 #include <QTextCursor>
 #include <QTextLine>
 
-Console::Console(QWidget *parent) : QTextEdit(parent) {}
+Console::Console(QWidget *parent) : QTextEdit(parent) { setFontPointSize(10); }
 
 void Console::clear() { this->clear(); }
 
