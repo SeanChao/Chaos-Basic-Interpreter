@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent) {
     this->setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT);
     console = new Console(this);
     console->setGeometry(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    console->write("Hello, world!\n");
+    console->write("Hello, world!\ncmd>\n");
 
     editor = new Editor(program);
     connect(editor, &Editor::editorOutput, console, &Console::getOutput);

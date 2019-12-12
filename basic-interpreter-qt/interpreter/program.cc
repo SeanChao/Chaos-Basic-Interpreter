@@ -5,7 +5,7 @@
 Program::Program() {}
 
 Program::~Program() {
-    for(auto i: stmtTree) {
+    for (auto i : stmtTree) {
         delete i.stmt;
     }
 }
@@ -36,10 +36,10 @@ void Program::run() {
         // execution
         ++iCount;
         // std::cout << "execution " << iCount << "\n";
-        if (iCount >= 20) {
-            std::cout << "loop endless ...\n";
-            return;
-        }
+        // if (iCount >= 20) {
+        //     std::cout << "loop endless ...\n";
+        //     return;
+        // }
         Statement *statement = (*it).stmt;
         std::cout << "[info] running line " << (*it).line << "\n";
         std::cout << "[debug] " << statement->type() << "\n";
@@ -48,8 +48,6 @@ void Program::run() {
                 it++;
                 break;
             case LET: {
-                // ((LetStmt *)statement)->getExp()->eval(evalContext);
-                // std::cout << "LET... \n";
                 int val = statement->getExp()->eval(evalContext);
                 std::cout << "[out] (LET)" << val << "\n";
                 it++;
@@ -65,11 +63,10 @@ void Program::run() {
             }
             case INPUT: {
                 std::string identifierName = statement->getExp()->toString();
-                // TODO: get input from user
                 std::cout << "?: ";
-                int val;
-                std::cin >> val;
-                evalContext.setVar(identifierName, val);
+//                int val = getInput();
+                // std::cin >> val;
+                evalContext.setVar(identifierName, input);
                 it++;
                 break;
             }
@@ -136,8 +133,8 @@ void Program::run() {
                         std::cout << "Goto target doesn't exist. Skipped.\n";
                         it++;
                     }
-                }
-                else it++;
+                } else
+                    it++;
                 break;
             }
             case END:
@@ -152,6 +149,7 @@ void Program::run() {
         // if no "END" available
         if (it == stmtTree.end()) {
             std::cout << "[warning] No END\n";
+            throw "[warning] No END";
             break;
         }
     }

@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include <QDebug>
 #include <QString>
+#include <QRegExp>
 #include <iostream>
 #include <regex>
 #include <sstream>
@@ -11,21 +12,27 @@ using namespace std;
 bool charCompareI(char, char);
 bool stringCompareI(const string &str1, const string &str2);
 
-Editor::Editor() { buffer = new ListBuffer(); }
+Editor::Editor() {
+    buffer = new ListBuffer();
+    emit editorOutput("cmd> ");
+}
 
 Editor::Editor(Program *p) : Editor() {
     program = p;
-    connect(p, &Program::printToGui, this, &Editor::getProgramOutput);
+    connect(program, &Program::printToGui, this, &Editor::getProgramOutput);
 }
 
 Editor::~Editor() { delete buffer; }
 
 void Editor::run(QString cmd) {
-    // emit editorOutput("cmd> ");
     // qDebug().flush();
     if (cmd == "Q") return;
     try {
         dispatchCmd(cmd.toUtf8().constData());
+    } catch (const char *str) {
+        emit editorOutput(QString::fromStdString(str));
+    } catch (std::string str) {
+        emit editorOutput(QString::fromStdString(str));
     } catch (const QString &e) {
         // qDebug() << "? " << e << endl;
         // QString info = ;
@@ -42,7 +49,7 @@ void Editor::run(QString cmd) {
 
 /*
       cmd-1: non-negative integer + statement (e.g., 100 let a = b + c)
-      cmd-2: delete (e.g., d 100)
+      cmd-2: delete (e.g., d 100) <-- deleted
       cmd-3: list   (e.g., lisT)
       cmd-4: save as a file (e.g., save code.sh)
       cmd-5: run    (running the program)
@@ -56,18 +63,8 @@ void Editor::dispatchCmd(const string &cmd) {
     const string strList = "list";
     if (stringCompareI(strList, cmd)) {
         Editor::cmdList();
-        // emit editorOutput("cmd >");
         return;
     }
-
-    // delete function is deleted
-    // if (cmd[0] == 'd' && cmd[1] == ' ') {
-    //     if (ss.eof()) throw QString("Bad/Unknown command");
-    //     ss >> type >> line;
-    //     cmdDelete(line);
-    //     // emit editorOutput("cmd >");
-    //     return;
-    // }
 
     type = cmd.substr(0, 5);
     if (type == "save ") {
@@ -88,6 +85,7 @@ void Editor::dispatchCmd(const string &cmd) {
     if (stringCompareI(cmd.substr(0, 6), "clear")) {
         Program *tmp = program;
         program = new Program;
+        connect(program, &Program::printToGui, this, &Editor::getProgramOutput);
         delete tmp;
         ListBuffer *btmp = buffer;
         buffer = new ListBuffer;
@@ -97,11 +95,11 @@ void Editor::dispatchCmd(const string &cmd) {
 
     if (type == "run") {
         qDebug() << "program begin to run ...";
-        try{
+        try {
             program->run();
-        }catch(const char *msg) {
+        } catch (const char *msg) {
             emit editorOutput(msg);
-        }catch(QString msg) {
+        } catch (QString msg) {
             emit editorOutput(msg);
         }
         return;
@@ -123,11 +121,19 @@ void Editor::dispatchCmd(const string &cmd) {
                                       ? ""
                                       : statement.substr(cmd.length() + 1);
         if (stringCompareI(cmd, "LET")) {
-            LetStmt *stmt = new LetStmt(stmtContent);
+            LetStmt *stmt;
+            try {
+                if (stmtContent == "") throw "Empty expression";
+                stmt = new LetStmt(stmtContent);
+            } catch (const char *str) {
+                emit editorOutput(QString::fromStdString(str));
+                return;
+            }
             cmdInput(line, statement);
             program->addStmt(line, stmt);
             std::cout << "[insert] " << line << "\tLET" << stmtContent << "\n";
         } else if (stringCompareI(cmd, "PRINT")) {
+            if (stmtContent == "") throw "Empty expression";
             PrintStmt *stmt = new PrintStmt(stmtContent);
             cmdInput(line, statement);
             program->addStmt(line, stmt);
@@ -135,10 +141,12 @@ void Editor::dispatchCmd(const string &cmd) {
                       << "\n";
 
         } else if (stringCompareI(cmd, "INPUT")) {
+            if (stmtContent == "") throw "Empty expression";
             InputStmt *stmt = new InputStmt(stmtContent);
             cmdInput(line, statement);
             program->addStmt(line, stmt);
         } else if (stringCompareI(cmd, "GOTO")) {
+            if (stmtContent == "") throw "Empty expression";
             int jmpTarget;
             stmtStream >> jmpTarget;
             GotoStmt *stmt = new GotoStmt(jmpTarget);
@@ -201,10 +209,11 @@ void Editor::cmdInput(int line, const string &statement) {
 void Editor::cmdList() const {
     buffer->showLines();
     int linesCount = buffer->getLength();
+    qDebug() << "listbuffer length: " << linesCount;
     for (int i = 0; i < linesCount; i++) {
         QString lineNumber = QString::number(buffer->getlineNumber(i));
         QString bufferedLine =
-            lineNumber + QString::fromStdString("\t" + buffer->getline(i));
+            lineNumber + QString::fromStdString("   " + buffer->getline(i));
         emit editorOutput(bufferedLine);
     }
 }
@@ -220,6 +229,8 @@ int Editor::numberLength(int number) {
 
 void Editor::getUserInput(QString str) {
     qDebug() << "GET IN ED: " << str;
+    QRegExp re("\\d*");  // a digit (\d), zero or more times (*)
+    if (re.exactMatch(str)) program->input = str.toInt();
     run(str);
 }
 

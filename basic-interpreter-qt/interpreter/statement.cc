@@ -18,9 +18,14 @@ StmtType RemStmt::type() const { return REM; }
 LetStmt::LetStmt(std::string &stmt) {
     Parser parser;
     Expression *expression = parser.parse(stmt);
-    // identifier = (IdentifierExp *)expression->getLHS();
-    // exp = expression->getRHS();
-    // store LetStmt Expression as a whole
+    if (expression->type() == IDENTIFIER) {
+        throw "No assignment";
+        return;
+    }
+    if (expression->getOperator() != "=") {
+        throw "Not an assignment";
+        // return;
+    }
     exp = expression;
 }
 

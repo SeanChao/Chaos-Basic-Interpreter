@@ -26,6 +26,7 @@ class Program : public QObject {
     void addSourceLine(int line, std::string stmt);
     void addStmt(int line, Statement *stmt);
     void run();
+    int input;
 
    signals:
     void printToGui(QString str);
