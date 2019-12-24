@@ -18,6 +18,7 @@ class Program : public QObject {
     std::list<Node> stmtTree;
     EvalContext evalContext;
     bool jump(std::list<Node>::iterator &it, int line);
+    int inputVal;
 
    public:
     Program();
@@ -26,10 +27,15 @@ class Program : public QObject {
     void addSourceLine(int line, std::string stmt);
     void addStmt(int line, Statement *stmt);
     void run();
-    int input;
+    bool inputState;
 
    signals:
     void printToGui(QString str);
+    void changeEditorInputState(bool state);
+   
+   public slots:
+    void getInput(int val);
+    // void setInputState(bool state);
 };
 
 #endif

@@ -6,6 +6,9 @@ EvalContext::EvalContext() {}
 EvalContext::~EvalContext() {}
 
 void EvalContext::setVar(std::string &var, int value) {
+    if(isDefined(var)) {
+        symbolMap[var] = value;
+    }
     symbolMap.insert(std::pair<std::string, int>(var, value));
 }
 
@@ -28,3 +31,5 @@ bool EvalContext::isDefined(std::string &var) const {
         return true;
     }
 }
+
+void EvalContext::reset() { symbolMap.clear(); }

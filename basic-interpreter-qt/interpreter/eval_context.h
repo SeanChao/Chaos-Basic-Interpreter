@@ -19,6 +19,7 @@ class EvalContext {
     void setVar(std::string &var, int value);
     int getVar(std::string &var) const;
     bool isDefined(std::string &var) const;
+    void reset();
 };
 
 #endif

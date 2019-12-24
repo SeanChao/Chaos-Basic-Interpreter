@@ -1,7 +1,8 @@
 #include "Editor.h"
 #include <QDebug>
-#include <QString>
 #include <QRegExp>
+#include <QRegularExpression>
+#include <QString>
 #include <iostream>
 #include <regex>
 #include <sstream>
@@ -14,6 +15,7 @@ bool stringCompareI(const string &str1, const string &str2);
 
 Editor::Editor() {
     buffer = new ListBuffer();
+    inputState = false;
     emit editorOutput("cmd> ");
 }
 
@@ -229,14 +231,32 @@ int Editor::numberLength(int number) {
 
 void Editor::getUserInput(QString str) {
     qDebug() << "GET IN ED: " << str;
-    QRegExp re("\\d*");  // a digit (\d), zero or more times (*)
-    if (re.exactMatch(str)) program->input = str.toInt();
-    run(str);
+    if (inputState) {
+        try {
+            QRegularExpression number("\\??\\s*(-?\\d+)$");
+            QRegularExpressionMatch match = number.match(str);
+            if (!match.hasMatch()) {
+                emit editorOutput("[error] not valid value\n? ");
+                return;
+            }
+            int val = match.captured(1).toInt();
+            qDebug() << "[degbug] Editor get input value: " << val;
+            emit setInput(val);
+        } catch (QString err) {
+            emit editorOutput(err);
+        }
+    } else
+        run(str);
 }
 
 void Editor::getProgramOutput(QString str) {
     qDebug() << "GET IN Program: " << str;
     emit editorOutput(str);
+}
+
+void Editor::setInputFlag(bool state) {
+    inputState = state;
+    qDebug() << "input state is set to " << state;
 }
 
 bool charCompareI(char a, char b) { return (toupper(a) == toupper(b)); }

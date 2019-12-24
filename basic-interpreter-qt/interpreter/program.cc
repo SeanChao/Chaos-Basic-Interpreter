@@ -1,29 +1,57 @@
 #include "program.h"
+#include <QCoreApplication>
+#include <QDebug>
 #include <iostream>
 #include <list>
 
-Program::Program() {}
+Program::Program() : inputState(false) {}
 
 Program::~Program() {
     for (auto i : stmtTree) {
         delete i.stmt;
     }
+    evalContext.reset();
 }
 
 void Program::addSourceLine(int line, std::string stmt) {}
 
-void Program::addStmt(int line, Statement *stmt) {
+void Program::addStmt(int lineNumber, Statement *stmt) {
+    // debug:
+    // qDebug() << "add to line " << lineNumber;
+    for (auto it : stmtTree) {
+        qDebug() << "line " << it.line << "stmt " << it.stmt;
+    }
+
     // insert statement
-    Node node(line, stmt);
-    if (line > stmtTree.end()->line) {
+    Node node(lineNumber, stmt);
+
+    if (stmtTree.empty()) {
         stmtTree.push_back(node);
         return;
     }
+
     auto it = stmtTree.begin();
-    while (!stmtTree.empty() && (*it).line < line) {
+    while (!stmtTree.empty() && (*it).line < lineNumber) {
         it++;
+        qDebug() << "[debug] visit line" << (*it).line << " to find "
+                 << lineNumber;
+        if (it == stmtTree.end()) {
+            stmtTree.push_back(node);
+            qDebug() << "insert to end";
+            return;
+        }
+    }
+    qDebug() << "[debug] visit line" << (*it).line << " -> " << lineNumber;
+    if ((*it).line == lineNumber) {
+        // modify a line in program
+        Statement *tmp = (*it).stmt;
+        (*it).stmt = stmt;
+        delete tmp;
+        qDebug() << "modify line " << lineNumber << " to be " << stmt;
+        return;
     }
     std::cout << "insert at " << (*it).line << "\n";
+    qDebug() << "insert at " << (*it).line << "\n";
     stmtTree.insert(it, node);
 }
 
@@ -35,14 +63,9 @@ void Program::run() {
     while ((*it).stmt != NULL && (*it).stmt->type() != END) {
         // execution
         ++iCount;
-        // std::cout << "execution " << iCount << "\n";
-        // if (iCount >= 20) {
-        //     std::cout << "loop endless ...\n";
-        //     return;
-        // }
         Statement *statement = (*it).stmt;
         std::cout << "[info] running line " << (*it).line << "\n";
-        std::cout << "[debug] " << statement->type() << "\n";
+        // std::cout << "[debug] " << statement->type() << "\n";
         switch ((*it).stmt->type()) {
             case REM:
                 it++;
@@ -50,23 +73,35 @@ void Program::run() {
             case LET: {
                 int val = statement->getExp()->eval(evalContext);
                 std::cout << "[out] (LET)" << val << "\n";
+                qDebug() << "[out] (LET)" << val << "\n";
                 it++;
                 break;
             }
             case PRINT: {
                 int val = statement->getExp()->eval(evalContext);
-                std::cout << "[out] " << val << "\n";
+                std::cout << "[out] printed: " << val << "\n";
+                qDebug() << "[out] printed: " << val << "\n";
                 QString ret = QString::number(val);
                 emit printToGui(ret);
                 it++;
                 break;
             }
             case INPUT: {
+                inputState = true;
+                emit changeEditorInputState(inputState);
                 std::string identifierName = statement->getExp()->toString();
-                std::cout << "?: ";
-//                int val = getInput();
-                // std::cin >> val;
-                evalContext.setVar(identifierName, input);
+                emit printToGui("? ");
+                /** CLI mode: following code without Qt would suffice
+                 * std::cout << "?: ";
+                 * int val = getInput();
+                 * std::cin >> val;
+                 */
+                while (inputState) {
+                    QCoreApplication::processEvents();
+                    // qDebug() << "Blocked in input state in program";
+                }
+                qDebug() << "end of user input";
+                evalContext.setVar(identifierName, inputVal);
                 it++;
                 break;
             }
@@ -149,10 +184,13 @@ void Program::run() {
         // if no "END" available
         if (it == stmtTree.end()) {
             std::cout << "[warning] No END\n";
+            evalContext.reset();
+        qDebug() << "Context reset";
             throw "[warning] No END";
-            break;
         }
     }
+    evalContext.reset();
+    qDebug() << "Context reset";
 }
 
 bool Program::jump(std::list<Node>::iterator &it, int jmpLine) {
@@ -178,3 +216,13 @@ bool Program::jump(std::list<Node>::iterator &it, int jmpLine) {
         return false;
     }
 }
+
+void Program::getInput(int val) {
+    inputState = false;
+    inputVal = val;
+    // reset input state
+    // emit printToGui("[debug] in getInput");
+    emit changeEditorInputState(inputState);
+}
+
+// void Program::setInputState(bool state) { inputState = state; }

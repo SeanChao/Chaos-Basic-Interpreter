@@ -1,9 +1,13 @@
 # Qt Build
 build-basic-interpreter-qt-Desktop_Qt_5_12_3_MinGW_64_bit-Debug/
 build-basic-interpreter-qt-Desktop_Qt_5_12_6_GCC_64bit-Debug/
+basic-interpreter-qt.pro.user.*
 
 # local tmp files
 .build/
 tasks.md
 proj2.pdf
 .history/
+*.pro.user
+.VSCodeCounter/
+.vscode/

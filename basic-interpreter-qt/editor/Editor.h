@@ -15,14 +15,15 @@ class Editor : public QObject {
 
    signals:
     void editorOutput(QString str) const;
+    void setInput(int val);
 
    public slots:
     void getUserInput(QString str);
     void getProgramOutput(QString str);
+    void setInputFlag(bool state);
 
    private:
     Program *program;
-
     ListBuffer *buffer;
 
     void dispatchCmd(const string &cmd);
@@ -32,4 +33,5 @@ class Editor : public QObject {
     void cmdSave(const string &filename) const;
 
     int numberLength(int number);
+    bool inputState;
 };
